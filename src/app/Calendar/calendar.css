@@ -1,0 +1,150 @@
+.calendar-envelope {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  left: 0;
+  top: calc(100% + 3px);
+  border-radius: 5px;
+  width: 220px;
+  height: 250px; /* Adjust height to ensure enough space for days */
+  background: #212340;
+  color: white;
+  padding: 5px 10px;
+
+  user-select: none;
+}
+
+.year-and-setting {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+
+  position: relative;
+}
+
+.year-and-setting h5,
+.month-and-monthNav h5 {
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  user-select: none;
+}
+
+.year-nav {
+  width: 100%;
+  height: auto;
+  position: absolute;
+  top: 22px;
+  left: 0;
+  padding: 5px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #212340;
+  border-radius: 5px;
+  box-shadow: 0 0 5px silver;
+}
+
+.year-selector {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: 4;
+  row-gap: 5px;
+  flex-grow: 1;
+
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.year-selector div {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+
+  padding: 1px 0;
+  letter-spacing: 0.08em;
+  user-select: none;
+}
+
+.year-selector div:hover {
+  background: #30618c;
+  border-radius: 5px;
+}
+
+.year-selector div:last-of-type {
+  grid-column: 2 / span 1;
+  width: 100%;
+  justify-self: stretch;
+}
+
+.month-and-monthNav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3px;
+}
+
+.day-names {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: 1fr;
+  justify-content: space-between;
+  text-align: center;
+
+  font-size: 0.7rem;
+  letter-spacing: 0.09em;
+  padding: 2px 0;
+}
+
+.day-names div:nth-of-type(7),
+.monthly-days-distribution div:nth-of-type(7n):nth-of-type(-n + 35) {
+  color: red;
+}
+
+.days-date-separator {
+  margin-bottom: 2px;
+}
+
+.monthly-days-distribution {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(6, 1fr);
+  flex-grow: 1;
+  height: 100%;
+  min-height: 0;
+}
+
+.monthly-days-distribution div {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  cursor: pointer;
+}
+
+.selected {
+  background: #eeece3;
+  color: #339aa6;
+}
+
+.today {
+  color: #cf9421;
+  background: #eeece3;
+}
+
+.setting-icon {
+  cursor: pointer;
+}
+
+.right-icon,
+.left-icon {
+  cursor: pointer;
+  font-weight: bold;
+}
