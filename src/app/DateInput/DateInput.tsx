@@ -2,19 +2,17 @@ import React, { useState, useEffect, useRef } from "react";
 import Calendar from "../Calendar/Calendar";
 import CalendarIcon from "../Icons/CalendarIcon";
 
+import { DateInputProps } from "../types";
+
 import { handleMonthInput, handleDayDateInput, handleYearInput } from "./inputReader";
+import { getSelectionRange, shiftCursor, monthRange, dayDateRange, yearRange } from "./inputHelpers";
 
 import "./dateInput.css";
-
-interface DateInputProps {
-  value?: string;
-  onChange?: (date: string) => void;
-}
 
 const DateInput: React.FC<DateInputProps> = ({ value, onChange }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const calendarIconRef = useRef<SVGSVGElement>(null);
-  console.log("Calendar Icon Ref", calendarIconRef.current);
+  const calendarRef = useRef<HTMLDivElement | null>(null);
 
   const dateObjectRef = useRef({
     month: "mm",
@@ -24,7 +22,7 @@ const DateInput: React.FC<DateInputProps> = ({ value, onChange }) => {
 
   const [showCalendar, setShowCalendar] = useState(false);
   const [inputValue, setInputValue] = useState<string>(
-    `${dateObjectRef.current.month}-${dateObjectRef.current.dayDate}-${dateObjectRef.current.year}`
+    value || `${dateObjectRef.current.month}-${dateObjectRef.current.dayDate}-${dateObjectRef.current.year}`
   );
 
   const toggleCalendarShow = () => {
@@ -33,6 +31,8 @@ const DateInput: React.FC<DateInputProps> = ({ value, onChange }) => {
 
   const handleDatePick = (selectedDate: string) => {
     if (onChange) onChange(selectedDate);
+    setInputValue(selectedDate);
+    setShowCalendar(false);
   };
 
   const handleInputFocus = (event: React.MouseEvent<HTMLInputElement> | React.FocusEvent<HTMLInputElement>) => {
@@ -44,19 +44,6 @@ const DateInput: React.FC<DateInputProps> = ({ value, onChange }) => {
       inputRef.current.setSelectionRange(...selectionRange);
     }, 0);
   };
-
-  const getSelectionRange = (cursorPosition: number): [number, number] => {
-    let range: [number, number] = [0, 0];
-    if (cursorPosition >= 0 && cursorPosition <= 2) range = [0, 2];
-    else if (cursorPosition >= 3 && cursorPosition <= 5) range = [3, 5];
-    else if (cursorPosition >= 6 && cursorPosition <= 10) range = [6, 10];
-
-    return range;
-  };
-
-  const monthRange = [0, 1, 2];
-  const dayDateRange = [3, 4, 5];
-  const yearRange = [6, 7, 8, 9, 10];
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     let prevValue = inputValue.split("-");
@@ -90,8 +77,9 @@ const DateInput: React.FC<DateInputProps> = ({ value, onChange }) => {
     }
 
     dateObjectRef.current = { month, dayDate, year };
-    setInputValue(`${month}-${dayDate}-${year}`);
-    if (onChange) onChange(`${month}-${dayDate}-${year}`);
+    const formattedDate = `${month}-${dayDate}-${year}`;
+    setInputValue(formattedDate);
+    if (onChange) onChange(formattedDate);
 
     setTimeout(() => {
       if (inputRef.current) inputRef.current.setSelectionRange(...selectionRange);
@@ -99,45 +87,31 @@ const DateInput: React.FC<DateInputProps> = ({ value, onChange }) => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== "Tab") return;
+    e.preventDefault();
     const input = e.currentTarget as HTMLInputElement;
-    const pos = input.selectionStart ?? 0;
-    let shiftCursor = 0;
+    const currentCursorPosition = input.selectionStart ?? 0;
+    let nextCursorPosition = shiftCursor(currentCursorPosition, e.shiftKey) || 0;
 
-    if (e.key === "Tab") {
-      e.preventDefault();
-
-      if (e.shiftKey) {
-        if (pos >= 6 && pos <= 10) shiftCursor = 4;
-        else if (pos >= 3 && pos <= 5) shiftCursor = 1;
-        else if (pos >= 0 && pos <= 2) {
-          // do something here
-          input.blur(); // Remove focus from current input
-          return;
-        }
-      } else {
-        // Normal tab behavior (move focus forward)
-        if (pos <= 2) shiftCursor = 4;
-        else if (pos >= 3 && pos <= 5) shiftCursor = 7;
-        else if (pos >= 6 && pos <= 10) {
-          if (calendarIconRef.current) {
-            calendarIconRef.current.focus();
-            return;
-          }
-        }
+    if (nextCursorPosition === -1) {
+      input.blur();
+      return;
+    } else if (nextCursorPosition === -2) {
+      if (calendarIconRef.current) {
+        calendarIconRef.current.focus();
+        return;
       }
-
-      // Update the selection range based on the shifted cursor position
-      setTimeout(() => {
-        const selectionRange = getSelectionRange(shiftCursor);
-        if (inputRef.current) {
-          inputRef.current.setSelectionRange(...selectionRange);
-        }
-      }, 0);
     }
+
+    setTimeout(() => {
+      const selectionRange = getSelectionRange(nextCursorPosition);
+      if (inputRef.current) {
+        inputRef.current.setSelectionRange(...selectionRange);
+      }
+    }, 0);
   };
 
   useEffect(() => {
-    console.log("Global Thing");
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if (document.activeElement === calendarIconRef.current && e.key === "Tab" && e.shiftKey) {
         e.preventDefault();
@@ -147,28 +121,46 @@ const DateInput: React.FC<DateInputProps> = ({ value, onChange }) => {
         }
       }
     };
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        showCalendar &&
+        calendarRef.current &&
+        !calendarRef.current.contains(event.target as Node) &&
+        !calendarIconRef.current?.contains(event.target as Node)
+      )
+        setShowCalendar(false);
+    };
+
     document.addEventListener("keydown", handleGlobalKeyDown);
+    document.addEventListener("mousedown", handleClickOutside);
+
     return () => {
       document.removeEventListener("keydown", handleGlobalKeyDown);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [showCalendar]);
 
   return (
     <div className="date-picker-envelope">
-      <div className="date-input-envelope">
-        <input
-          ref={inputRef}
-          type="text"
-          value={inputValue}
-          onChange={handleInputChange}
-          onFocus={handleInputFocus}
-          onMouseDown={handleInputFocus}
-          onKeyDown={handleKeyDown}
+      <input
+        ref={inputRef}
+        type="text"
+        value={inputValue}
+        onChange={handleInputChange}
+        onFocus={handleInputFocus}
+        onMouseDown={handleInputFocus}
+        onKeyDown={handleKeyDown}
+      />
+      <CalendarIcon ref={calendarIconRef} className="calendar-icon" toggleCalendarShow={toggleCalendarShow} />
+      {showCalendar && (
+        <Calendar
+          ref={calendarRef}
+          pickedDate={handleDatePick}
+          closeCalendar={() => setShowCalendar(false)}
+          initialDate={inputValue}
         />
-        <CalendarIcon ref={calendarIconRef} className="calendar-icon" toggleCalendarShow={toggleCalendarShow} />
-      </div>
-
-      {showCalendar && <Calendar pickedDate={handleDatePick} closeCalendar={() => setShowCalendar(false)} />}
+      )}
     </div>
   );
 };

@@ -1,8 +1,6 @@
 import { NEPALI_CALENDAR_DATA } from "../converter/constants";
 
 export const adjustInputDate = (dateObject: { month: string; dayDate: string; year: string }) => {
-  console.log("Here to validate the date.");
-
   let month: number = Number(dateObject.month);
   let dayDate: number = Number(dateObject.dayDate);
   let year: number = Number(dateObject.year);
@@ -14,11 +12,7 @@ export const adjustInputDate = (dateObject: { month: string; dayDate: string; ye
   if (dayDate < 1) dayDate = 1;
   const monthLastDayDate = adjustLastDayOfMonth(month, year);
   if (dayDate > monthLastDayDate) dayDate = monthLastDayDate;
-
-  console.log("Refined Date:", month, dayDate, year);
 };
-
-
 
 const adjustLastDayOfMonth = (month: number, year: number): number => {
   const yearIndex = year - 2000;

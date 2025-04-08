@@ -95,6 +95,7 @@ export default class NepaliDateTime {
     this.dayName = dayNameMap[this.dayIndex];
   }
 
+  /* getters and setters start */
   getDayDate() {
     return this.dayDate;
   }
@@ -157,5 +158,18 @@ export default class NepaliDateTime {
 
   setMilliseconds(milliseconds: number) {
     this.milliseconds = milliseconds;
+  }
+  /* getters and setters end */
+
+  toString() {
+    return `${this.dayName} ${this.month} ${this.dayDate} ${this.year} ${this.hours}:${this.minutes}:${this.seconds}`;
+  }
+
+  toDateString() {
+    return `${this.dayName} ${this.month} ${this.dayDate} ${this.year}`;
+  }
+
+  toTimeString() {
+    return `${this.hours}:${this.minutes}:${this.seconds}`;
   }
 }

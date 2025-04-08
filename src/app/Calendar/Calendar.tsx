@@ -4,35 +4,15 @@ import LeftIcon from "../Icons/LeftIcon";
 import RightIcon from "../Icons/RightIcon";
 
 import NepaliDateTime from "../NepaliDateTime/NepaliDateTime";
+import { NEPALI_CALENDAR_DATA } from "../converter/constants";
+import { dayNames, monthNames } from "./calendarConstants";
+import { CalendarProps } from "../types";
 
 import "./calendar.css";
 
-const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thr", "Fri", "Sat"];
-const monthNames = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "Septermber",
-  "October",
-  "November",
-  "December",
-];
-
-import { NEPALI_CALENDAR_DATA } from "../converter/constants";
-
-interface DateProps {
-  pickedDate: (date: string) => void;
-  closeCalendar: () => void;
-}
-
 const yearIndex = Array.from({ length: NEPALI_CALENDAR_DATA.length }, (_, i) => 2000 + i);
-
 const TODAY = new NepaliDateTime();
+
 const initialStartYearSliceIndex = () => {
   let index = 0;
   while (index + 10 <= yearIndex.length) {
@@ -44,75 +24,73 @@ const initialStartYearSliceIndex = () => {
   return 0;
 };
 
-// const Calendar: React.FC<DateProps> = ({ pickedDate, closeCalendar }) => {
-const Calendar = forwardRef<HTMLInputElement, DateProps>(({ pickedDate, closeCalendar }, ref) => {
-  const [showYearSelector, setShowYearSelector] = useState<boolean>(false);
-  const toggleYearSelectorView = () => {
-    setShowYearSelector((prevView) => !prevView);
-  };
-
-  const [startYearIndex, setStartYearIndex] = useState<number>(initialStartYearSliceIndex());
-  const handleNextYearsSlice = () => {
-    const nextSliceStartIndex = startYearIndex === 90 ? 0 : startYearIndex + 10;
-    setStartYearIndex(nextSliceStartIndex);
-  };
-
-  const handlePrevYearsSlice = () => {
-    const prevSliceStartIndex = startYearIndex === 0 ? 90 : startYearIndex - 10;
-    setStartYearIndex(prevSliceStartIndex);
-  };
-  const [selectedYear, setSelectedYear] = useState<number>(TODAY.getYear());
-  const handleYearSelection = (year: number) => {
-    setSelectedYear(year);
-    toggleYearSelectorView();
-  };
-
+const Calendar = forwardRef<HTMLDivElement, CalendarProps>(({ pickedDate, closeCalendar, initialDate }, ref) => {
+  const [showYearSelector, setShowYearSelector] = useState(false);
+  const [startYearIndex, setStartYearIndex] = useState(initialStartYearSliceIndex());
+  const [selectedYear, setSelectedYear] = useState(TODAY.getYear());
   const [selectedMonthIndex, setSelectedMonthIndex] = useState(TODAY.getMonth());
-  const handleNextMonth = () => {
-    setSelectedYear(selectedMonthIndex === 12 ? selectedYear + 1 : selectedYear);
-    const nextMonthIndex = selectedMonthIndex === 12 ? 1 : selectedMonthIndex + 1;
-
-    setSelectedMonthIndex(nextMonthIndex);
-  };
-
-  const handlePrevMonth = () => {
-    setSelectedYear(selectedMonthIndex === 1 ? selectedYear - 1 : selectedYear);
-    const prevMonthIndex = selectedMonthIndex === 1 ? 12 : selectedMonthIndex - 1;
-    setSelectedMonthIndex(prevMonthIndex);
-  };
-
+  const [selectedDayDate, setSelectedDayDate] = useState(TODAY.getDayDate());
   const [daysOfMonth, setDaysOfMonth] = useState(NEPALI_CALENDAR_DATA[selectedYear - 2000][0][selectedMonthIndex - 1]);
+
+  // Adjust initial date if provided
+  useEffect(() => {
+    if (initialDate) {
+      const [month, day, year] = initialDate.split("-").map(Number);
+      if (
+        !isNaN(month) &&
+        !isNaN(day) &&
+        !isNaN(year) &&
+        month >= 1 &&
+        month <= 12 &&
+        day >= 1 &&
+        day <= 31 &&
+        year >= 1000 &&
+        year <= 9999
+      ) {
+        setSelectedMonthIndex(month);
+        setSelectedDayDate(day);
+        setSelectedYear(year);
+      }
+    }
+  }, [initialDate]);
+
   useEffect(() => {
     setDaysOfMonth(NEPALI_CALENDAR_DATA[selectedYear - 2000][0][selectedMonthIndex - 1]);
   }, [selectedYear, selectedMonthIndex]);
-  const daysArray = Array.from({ length: daysOfMonth }, (_, index) => index + 1);
 
-  const [selectedDay, setSelectedDay] = useState<number>(TODAY.getDayDate());
-  const handleDaySelection = (day: number) => {
-    setSelectedDay(day);
-    selectedDate(day);
+  const handleYearSelection = (year: number) => {
+    setSelectedYear(year);
+    setShowYearSelector(false);
+  };
+
+  const handleMonthChange = (isNext: boolean) => {
+    const newMonthIndex = isNext ? (selectedMonthIndex % 12) + 1 : ((selectedMonthIndex - 2 + 12) % 12) + 1;
+    const newYear = newMonthIndex === 1 ? selectedYear + 1 : newMonthIndex === 12 ? selectedYear - 1 : selectedYear;
+    setSelectedYear(newYear);
+    setSelectedMonthIndex(newMonthIndex);
+  };
+
+  const handleDayDateSelection = (day: number) => {
+    setSelectedDayDate(day);
+    pickedDate(`${String(selectedMonthIndex).padStart(2, "0")}-${String(day).padStart(2, "0")}-${selectedYear}`);
     closeCalendar();
   };
 
-  const selectedDate = (day: number) => {
-    pickedDate(`${selectedMonthIndex.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}-${selectedYear}`);
-  };
-
-  const isToday = (day: number) => {
-    if (selectedYear === TODAY.getYear() && selectedMonthIndex === TODAY.getMonth() && day === TODAY.getDayDate())
-      return true;
-    else return false;
-  };
+  const isToday = (day: number) =>
+    selectedYear === TODAY.getYear() && selectedMonthIndex === TODAY.getMonth() && day === TODAY.getDayDate();
 
   const monthStartDay = new NepaliDateTime(selectedYear, selectedMonthIndex).getDayIndex() - 1;
 
   return (
-    <div className="calendar-envelope">
+    <div ref={ref} className="calendar-envelope">
       <div className="year-and-setting">
-        <h5 onClick={toggleYearSelectorView}>{`${selectedYear} B.S`}</h5>
+        <h5 onClick={() => setShowYearSelector((prev) => !prev)}>{`${selectedYear} B.S`}</h5>
         {showYearSelector && (
           <div className="year-nav">
-            <LeftIcon className="left-icon" onClick={handlePrevYearsSlice} />
+            <LeftIcon
+              className="left-icon"
+              onClick={() => setStartYearIndex((prev) => (prev === 0 ? 90 : prev - 10))}
+            />
             <div className="year-selector">
               {yearIndex.slice(startYearIndex, startYearIndex + 10).map((year, index) => (
                 <div key={index} onClick={() => handleYearSelection(year)}>
@@ -120,17 +98,21 @@ const Calendar = forwardRef<HTMLInputElement, DateProps>(({ pickedDate, closeCal
                 </div>
               ))}
             </div>
-            <RightIcon className="right-icon" onClick={handleNextYearsSlice} />
+            <RightIcon
+              className="right-icon"
+              onClick={() => setStartYearIndex((prev) => (prev === 90 ? 0 : prev + 10))}
+            />
           </div>
         )}
         <SettingIcon className="setting-icon" />
       </div>
 
       <div className="month-and-monthNav">
-        <LeftIcon className="left-icon" onClick={() => handlePrevMonth()} />
+        <LeftIcon className="left-icon" onClick={() => handleMonthChange(false)} />
         <h5>{monthNames[selectedMonthIndex - 1]}</h5>
-        <RightIcon className="right-icon" onClick={() => handleNextMonth()} />
+        <RightIcon className="right-icon" onClick={() => handleMonthChange(true)} />
       </div>
+
       <div className="day-names">
         {dayNames.map((day, index) => (
           <div key={index}>{day}</div>
@@ -141,17 +123,15 @@ const Calendar = forwardRef<HTMLInputElement, DateProps>(({ pickedDate, closeCal
         {Array.from({ length: monthStartDay }).map((_, index) => (
           <div key={`empty-${index}`} className="empty"></div>
         ))}
-        {daysArray &&
-          daysArray.length > 0 &&
-          daysArray.map((day, index) => (
-            <div
-              className={`${isToday(day) ? "today" : ""} ${selectedDay === day ? "selected" : ""}`}
-              key={index}
-              onClick={() => handleDaySelection(day)}
-            >
-              {day}
-            </div>
-          ))}
+        {Array.from({ length: daysOfMonth }, (_, index) => index + 1).map((day) => (
+          <div
+            className={`${isToday(day) ? "today" : ""} ${selectedDayDate === day ? "selected" : ""}`}
+            key={day}
+            onClick={() => handleDayDateSelection(day)}
+          >
+            {day}
+          </div>
+        ))}
       </div>
     </div>
   );

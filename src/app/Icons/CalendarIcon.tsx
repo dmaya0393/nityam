@@ -11,8 +11,8 @@ const CalendarIcon = React.forwardRef<SVGSVGElement, CalendarIconProps>(({ class
   return (
     <svg
       ref={ref} // Attach the forwarded ref here
-      width="11"
-      height="11"
+      width="12"
+      height="12"
       viewBox="0 0 16 16"
       fill="currentColor"
       className={className}
