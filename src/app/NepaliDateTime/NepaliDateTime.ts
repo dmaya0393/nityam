@@ -1,4 +1,5 @@
 import { AD_To_BS_Converter, BS_To_AD_Converter } from "../converter/converter";
+import { INepaliDateTime } from "../declarations";
 
 interface DateProps {
   dayDate: number;
@@ -8,22 +9,22 @@ interface DateProps {
 
 const dayNameMap: Record<number, string> = { 1: "Sun", 2: "Mon", 3: "Tue", 4: "Wed", 5: "Thr", 6: "Fri", 7: "Sat" };
 
-export default class NepaliDateTime {
+export default class NepaliDateTime implements INepaliDateTime {
   // date-related fields
-  private dayDate: number; // done
-  private dayIndex: number; //
-  private dayName: string;
-  private month: number;
-  private year: number;
+  dayDate: number; // done
+  dayIndex: number; //
+  dayName: string;
+  month: number;
+  year: number;
 
   // time-related fields
-  private hours: number;
-  private minutes: number;
-  private seconds: number;
-  private milliseconds: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+  milliseconds: number;
 
   // full date-time related
-  private AD: Date;
+  AD: Date;
 
   /* Constructor definitions */
   constructor();
@@ -96,80 +97,80 @@ export default class NepaliDateTime {
   }
 
   /* getters and setters start */
-  getDayDate() {
+  getDayDate(): number {
     return this.dayDate;
   }
 
-  setDayDate(dayDate: number) {
+  setDayDate(dayDate: number): void {
     this.dayDate = dayDate;
   }
 
-  getDayIndex() {
+  getDayIndex(): number {
     return this.dayIndex;
   }
 
-  getDayName() {
+  getDayName(): string {
     return this.dayName;
   }
 
-  getMonth() {
+  getMonth(): number {
     return this.month;
   }
 
-  setMonth(month: number) {
+  setMonth(month: number): void {
     this.month = month;
   }
 
-  getYear() {
+  getYear(): number {
     return this.year;
   }
 
-  setYear(year: number) {
+  setYear(year: number): void {
     this.year = year;
   }
 
-  getHours() {
+  getHours(): number {
     return this.hours;
   }
 
-  setHours(hours: number) {
+  setHours(hours: number): void {
     this.hours = hours;
   }
 
-  getMinutes() {
+  getMinutes(): number {
     return this.minutes;
   }
 
-  setMinutes(minutes: number) {
+  setMinutes(minutes: number): void {
     this.minutes = minutes;
   }
 
-  getSeconds() {
+  getSeconds(): number {
     return this.seconds;
   }
 
-  setSeconds(seconds: number) {
+  setSeconds(seconds: number): void {
     this.seconds = seconds;
   }
 
-  getMilliseconds() {
+  getMilliseconds(): number {
     return this.milliseconds;
   }
 
-  setMilliseconds(milliseconds: number) {
+  setMilliseconds(milliseconds: number): void {
     this.milliseconds = milliseconds;
   }
   /* getters and setters end */
 
-  toString() {
+  toString(): string {
     return `${this.dayName} ${this.month} ${this.dayDate} ${this.year} ${this.hours}:${this.minutes}:${this.seconds}`;
   }
 
-  toDateString() {
+  toDateString(): string {
     return `${this.dayName} ${this.month} ${this.dayDate} ${this.year}`;
   }
 
-  toTimeString() {
+  toTimeString(): string {
     return `${this.hours}:${this.minutes}:${this.seconds}`;
   }
 }
